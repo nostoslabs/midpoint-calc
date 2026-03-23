@@ -14,7 +14,7 @@ GET /api/midpoint
 |----------|----------|--------------|----------------------------------------------------|
 | `a`      | yes      | —            | First address (free text, e.g. `123 Main St, City, ST`) |
 | `b`      | yes      | —            | Second address                                     |
-| `mode`   | no       | `geometric`  | `geometric` (straight-line) or `drivetime` (road route) |
+| `mode`   | no       | `geometric`  | `geometric`, `drivetime` (road route), or `drivetime-traffic` (traffic-aware, requires Google API key) |
 | `radius` | no       | `3000`       | POI search radius in meters (100–50000)            |
 
 ## Example Request
@@ -63,7 +63,7 @@ GET /api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3
 | `addressA`             | GeocodedAddress   | Resolved first address with coordinates               |
 | `addressB`             | GeocodedAddress   | Resolved second address with coordinates              |
 | `midpoint`             | Coordinates       | The calculated midpoint `{ lat, lon }`                |
-| `mode`                 | string            | `"geometric"` or `"drivetime"`                        |
+| `mode`                 | string            | `"geometric"`, `"drivetime"`, or `"drivetime-traffic"` |
 | `route`                | RouteInfo or null | Present only in `drivetime` mode                      |
 | `route.totalDuration`  | number            | Total drive time in seconds                           |
 | `route.totalDistance`   | number            | Total drive distance in meters                        |
@@ -80,13 +80,15 @@ GET /api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3
 | Status | Cause                                    | Example                                              |
 |--------|------------------------------------------|------------------------------------------------------|
 | 400    | Missing or invalid parameter             | `{ "error": "Missing required parameter \"a\"" }`    |
-| 400    | Invalid mode                             | `{ "error": "Invalid mode \"bicycle\". Must be \"geometric\" or \"drivetime\"" }` |
+| 400    | Invalid mode                             | `{ "error": "Invalid mode \"bicycle\". Must be \"geometric\", \"drivetime\", or \"drivetime-traffic\"" }` |
 | 404    | Address could not be geocoded            | `{ "error": "Could not geocode address A: \"xyzzy\"" }` |
 | 422    | No driving route (drivetime mode only)   | `{ "error": "No driving route found between these locations" }` |
+| 501    | Traffic mode without Google API key      | `{ "error": "Traffic-aware routing requires GOOGLE_MAPS_API_KEY to be configured" }` |
 
 ## Agent Usage Notes
 
 - **Prefer `drivetime` mode** for real-world meeting point suggestions. `geometric` is faster but puts the midpoint in a straight line which may be in the middle of nowhere.
+- **Use `drivetime-traffic`** when traffic conditions matter (e.g. rush hour commutes). Requires `GOOGLE_MAPS_API_KEY` env var. Falls back gracefully with a 501 error if not configured.
 - **Give the user the `mapUrl`** so they can see the result on a map. The URL auto-loads the calculation.
 - **Use `pois` to suggest meeting places** near the midpoint. These are restaurants, cafes, and bars within the search radius.
 - **Increase `radius`** if `pois` comes back empty. Rural areas may need 5000–10000m. Urban areas work fine at 1000–3000m.
@@ -94,6 +96,19 @@ GET /api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3
 - **`route.totalDistance` is in meters.** Divide by 1609.34 for miles.
 - **`route.geometry` is large** (thousands of coordinates). You can ignore it — it's for the map UI. Focus on `midpoint`, `pois`, and `mapUrl`.
 - **Address format is flexible.** Full addresses, city/state, landmarks, and zip codes all work. Suite numbers and directional qualifiers are stripped automatically.
+
+## Traffic-Aware Mode Setup
+
+The `drivetime-traffic` mode uses the Google Directions API for real-time traffic data. To enable it:
+
+1. Get a Google Maps API key with the Directions API enabled
+2. Create a `.env` file in the project root:
+   ```
+   GOOGLE_MAPS_API_KEY=your_key_here
+   ```
+3. Restart the server
+
+Without this key, `geometric` and `drivetime` modes work fine (no API key needed).
 
 ## Standalone Endpoints
 

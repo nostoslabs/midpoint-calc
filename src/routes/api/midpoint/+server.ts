@@ -3,10 +3,11 @@ import type { RequestHandler } from './$types';
 import { geocode } from '$lib/nominatim';
 import { calculateMidpoint } from '$lib/geo';
 import { findDriveTimeMidpoint } from '$lib/osrm';
+import { findDriveTimeMidpointWithTraffic, isGoogleRoutesAvailable } from '$lib/google-routes';
 import { findNearbyPois } from '$lib/overpass';
 import type { MidpointMode, MidpointResult } from '$lib/types';
 
-const VALID_MODES: MidpointMode[] = ['geometric', 'drivetime'];
+const VALID_MODES: MidpointMode[] = ['geometric', 'drivetime', 'drivetime-traffic'];
 
 export const GET: RequestHandler = async ({ url }) => {
 	const aQuery = url.searchParams.get('a')?.trim();
@@ -18,7 +19,9 @@ export const GET: RequestHandler = async ({ url }) => {
 	if (!bQuery) return json({ error: 'Missing required parameter "b"' }, { status: 400 });
 	if (!VALID_MODES.includes(modeParam as MidpointMode)) {
 		return json(
-			{ error: `Invalid mode "${modeParam}". Must be "geometric" or "drivetime"` },
+			{
+				error: `Invalid mode "${modeParam}". Must be "geometric", "drivetime", or "drivetime-traffic"`
+			},
 			{ status: 400 }
 		);
 	}
@@ -27,6 +30,13 @@ export const GET: RequestHandler = async ({ url }) => {
 	}
 
 	const mode = modeParam as MidpointMode;
+
+	if (mode === 'drivetime-traffic' && !isGoogleRoutesAvailable()) {
+		return json(
+			{ error: 'Traffic-aware routing requires GOOGLE_MAPS_API_KEY to be configured' },
+			{ status: 501 }
+		);
+	}
 
 	// Geocode both addresses
 	const [addressA, addressB] = await Promise.all([geocode(aQuery), geocode(bQuery)]);
@@ -42,7 +52,18 @@ export const GET: RequestHandler = async ({ url }) => {
 	let midpoint;
 	let route;
 
-	if (mode === 'drivetime') {
+	if (mode === 'drivetime-traffic') {
+		try {
+			const result = await findDriveTimeMidpointWithTraffic(addressA.coords, addressB.coords);
+			midpoint = result.midpoint;
+			route = result.route;
+		} catch (e) {
+			return json(
+				{ error: e instanceof Error ? e.message : 'No driving route found' },
+				{ status: 422 }
+			);
+		}
+	} else if (mode === 'drivetime') {
 		try {
 			const result = await findDriveTimeMidpoint(addressA.coords, addressB.coords);
 			midpoint = result.midpoint;

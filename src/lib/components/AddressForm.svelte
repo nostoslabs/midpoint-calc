@@ -81,6 +81,7 @@
 			>
 				<option value="geometric">Geometric</option>
 				<option value="drivetime">Drive Time</option>
+				<option value="drivetime-traffic">Drive Time (Traffic)</option>
 			</select>
 		</div>
 		<div class="flex-1">

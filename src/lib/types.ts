@@ -16,7 +16,7 @@ export interface PointOfInterest {
 	address?: string;
 }
 
-export type MidpointMode = 'geometric' | 'drivetime';
+export type MidpointMode = 'geometric' | 'drivetime' | 'drivetime-traffic';
 
 export interface RouteInfo {
 	totalDuration: number;

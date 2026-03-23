@@ -179,7 +179,9 @@
 		Map data &copy;
 		<a href="https://www.openstreetmap.org/copyright" class="underline">OpenStreetMap</a>
 		contributors
-		{#if routeInfo}
+		{#if routeInfo && currentMode === 'drivetime-traffic'}
+			| Routing by <a href="https://developers.google.com/maps" class="underline">Google Maps</a>
+		{:else if routeInfo}
 			| Routing by <a href="https://project-osrm.org/" class="underline">OSRM</a>
 		{/if}
 	</footer>
