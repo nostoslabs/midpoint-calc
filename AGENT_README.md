@@ -2,6 +2,12 @@
 
 Find the geographic or drive-time midpoint between two addresses. Returns the midpoint coordinates, nearby places (restaurants, cafes, bars), and a shareable map URL.
 
+## Base URL
+
+```
+https://midpointcalc.vercel.app
+```
+
 ## Endpoint
 
 ```
@@ -20,7 +26,7 @@ GET /api/midpoint
 ## Example Request
 
 ```
-GET /api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3000
+GET https://midpointcalc.vercel.app/api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3000
 ```
 
 ## Response (200)
@@ -52,7 +58,7 @@ GET /api/midpoint?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3
       "address": "Memorial Parkway Southwest, Huntsville"
     }
   ],
-  "mapUrl": "http://localhost:5173/?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3000"
+  "mapUrl": "https://midpointcalc.vercel.app/?a=Huntsville+AL&b=Owens+Cross+Roads+AL&mode=drivetime&radius=3000"
 }
 ```
 
