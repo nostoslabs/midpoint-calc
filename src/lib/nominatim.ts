@@ -50,6 +50,35 @@ async function throttledFetch(url: string): Promise<Response> {
 	return fetch(url, { headers: { 'User-Agent': 'MidpointCalc/1.0' } });
 }
 
+async function geocodeArcgis(query: string): Promise<GeocodedAddress | null> {
+	const url = new URL(
+		'https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer/findAddressCandidates'
+	);
+	url.searchParams.set('SingleLine', query);
+	url.searchParams.set('f', 'json');
+	url.searchParams.set('outFields', 'Match_addr,Addr_type,Score');
+	url.searchParams.set('maxLocations', '1');
+	url.searchParams.set('sourceCountry', 'USA');
+
+	const res = await fetch(url);
+	if (!res.ok) return null;
+
+	const data = await res.json();
+	const candidate = data.candidates?.[0];
+	if (!candidate?.location || typeof candidate.score !== 'number' || candidate.score < 90) {
+		return null;
+	}
+
+	return {
+		query,
+		displayName: candidate.address,
+		coords: {
+			lat: candidate.location.y,
+			lon: candidate.location.x
+		}
+	};
+}
+
 export async function geocode(query: string): Promise<GeocodedAddress | null> {
 	const variants = normalizeAddress(query);
 
@@ -77,5 +106,5 @@ export async function geocode(query: string): Promise<GeocodedAddress | null> {
 		};
 	}
 
-	return null;
+	return geocodeArcgis(query);
 }

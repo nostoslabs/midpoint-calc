@@ -175,7 +175,8 @@
 	</main>
 
 	<footer class="bg-white border-t border-gray-200 px-6 py-3 text-xs text-gray-400">
-		Geocoding by <a href="https://nominatim.openstreetmap.org/" class="underline">Nominatim</a> |
+		Geocoding by <a href="https://nominatim.openstreetmap.org/" class="underline">Nominatim</a>
+		and <a href="https://developers.arcgis.com/rest/geocode/" class="underline">ArcGIS</a> |
 		Map data &copy;
 		<a href="https://www.openstreetmap.org/copyright" class="underline">OpenStreetMap</a>
 		contributors
