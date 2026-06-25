@@ -22,6 +22,7 @@
 	let pois = $state<PointOfInterest[]>([]);
 	let routeInfo = $state<RouteInfo | null>(null);
 	let currentMode = $state<MidpointMode>('geometric');
+	const appVersion = '0.0.2';
 
 	// URL param initial values
 	let initialA = $state('');
@@ -180,6 +181,7 @@
 		Map data &copy;
 		<a href="https://www.openstreetmap.org/copyright" class="underline">OpenStreetMap</a>
 		contributors
+		| Version {appVersion}
 		{#if routeInfo && currentMode === 'drivetime-traffic'}
 			| Routing by <a href="https://developers.google.com/maps" class="underline">Google Maps</a>
 		{:else if routeInfo}
